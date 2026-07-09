@@ -1,0 +1,65 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Helper: is the user an admin of this gemeente?
+    function isAdmin(gemeenteId) {
+      return request.auth != null && request.auth.uid == gemeenteId;
+    }
+
+    // Helper: is the user a member of this gemeente?
+    function isMember(gemeenteId) {
+      return request.auth != null &&
+        exists(/databases/$(database)/documents/gebruikers/$(request.auth.uid)) &&
+        get(/databases/$(database)/documents/gebruikers/$(request.auth.uid)).data.gemeenteId == gemeenteId;
+    }
+
+    // Gemeentes — admin full access, members can read
+    match /gemeentes/{gemeenteId} {
+      allow read: if request.auth != null;
+      allow write: if isAdmin(gemeenteId);
+
+      // Lede (Members) — admin full access, members can read
+      match /lede/{docId} {
+        allow read: if request.auth != null && (isAdmin(gemeenteId) || isMember(gemeenteId));
+        allow write: if isAdmin(gemeenteId);
+      }
+
+      // Gebede (Prayers) — all authenticated users can read & create
+      match /gebede/{docId} {
+        allow read: if request.auth != null && (isAdmin(gemeenteId) || isMember(gemeenteId));
+        allow create: if request.auth != null && (isAdmin(gemeenteId) || isMember(gemeenteId));
+        allow update, delete: if isAdmin(gemeenteId);
+      }
+
+      // Geleenthede (Events) — all members can read, admin can write
+      match /geleenthede/{docId} {
+        allow read: if request.auth != null && (isAdmin(gemeenteId) || isMember(gemeenteId));
+        allow write: if isAdmin(gemeenteId);
+      }
+
+      // All other subcollections — admin full access, members read
+      match /{collection}/{docId} {
+        allow read: if request.auth != null && (isAdmin(gemeenteId) || isMember(gemeenteId));
+        allow write: if isAdmin(gemeenteId);
+      }
+    }
+
+    // Super-admin read access to all gemeentes
+    match /gemeentes/{document=**} {
+      allow read: if request.auth != null;
+    }
+
+    // Gebruikers (Users) — own profile read/write, admin can read all
+    match /gebruikers/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+      allow read: if request.auth != null;
+    }
+
+    // Aansoeke (Membership applications) — anyone authenticated can create
+    match /gemeentes/{gemeenteId}/aansoeke/{docId} {
+      allow create: if request.auth != null;
+      allow read, update, delete: if isAdmin(gemeenteId);
+    }
+  }
+}
