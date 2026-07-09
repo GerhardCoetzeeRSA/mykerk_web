@@ -742,7 +742,6 @@ window._firebaseSDKLoaded = true;
         <div class="nav-item drawer-nav" onclick="showScreen('kerkraad',event.currentTarget);closeDrawer()"><span class="nav-icon">&#127963;&#65039;</span><span data-en="Church Board" data-af="Kerkraad">Kerkraad</span></div>
         <div class="nav-item drawer-nav" onclick="showScreen('attendance',event.currentTarget);closeDrawer()"><span class="nav-icon">✅</span><span data-en="Attendance" data-af="Bywoning">Bywoning</span></div>
         <div class="nav-item drawer-nav" onclick="showScreen('donations',event.currentTarget);closeDrawer()"><span class="nav-icon">💰</span><span data-en="Donations &amp; Tithes" data-af="Skenkings &amp; Tiendes">Skenkings &amp; Tiendes</span></div>
-        <div class="nav-item drawer-nav" onclick="showScreen('checkin',event.currentTarget);closeDrawer()"><span class="nav-icon">👶</span><span data-en="Child Check-In" data-af="Kinders Inteken">Kinders Inteken</span></div>
         <div class="nav-item drawer-nav" onclick="showScreen('volunteers',event.currentTarget);closeDrawer()"><span class="nav-icon">🙋</span><span data-en="Volunteers" data-af="Vrywilligers">Vrywilligers</span></div>
         <div class="nav-item drawer-nav" onclick="showScreen('settings',event.currentTarget);closeDrawer()"><span class="nav-icon">&#9881;&#65039;</span><span data-en="Settings &amp; Admin" data-af="Instellings &amp; Admin">Instellings &amp; Admin</span></div>
       </div>
@@ -815,10 +814,7 @@ window._firebaseSDKLoaded = true;
           <span class="nav-icon">💰</span>
           <span data-en="Donations &amp; Tithes" data-af="Skenkings &amp; Tiendes">Skenkings &amp; Tiendes</span>
         </div>
-        <div class="nav-item" onclick="showScreen('checkin', event.currentTarget)">
-          <span class="nav-icon">👶</span>
-          <span data-en="Child Check-In" data-af="Kinders Inteken">Kinders Inteken</span>
-        </div>
+
         <div class="nav-item" onclick="showScreen('volunteers', event.currentTarget)">
           <span class="nav-icon">🙋</span>
           <span data-en="Volunteers" data-af="Vrywilligers">Vrywilligers</span>
@@ -908,6 +904,30 @@ window._firebaseSDKLoaded = true;
 
       <!-- MEMBERS -->
       <div class="screen" id="screen-members">
+
+        <!-- AGE DISTRIBUTION STATS — admin only -->
+        <div id="ageStatsPanel" style="display:none;margin-bottom:20px">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+            <div style="font-size:13px;font-weight:600;color:var(--deep)" data-en="Congregation Age Distribution" data-af="Gemeente Ouderdomsverdeling">Gemeente Ouderdomsverdeling</div>
+            <button onclick="toggleAgeStats()" style="background:none;border:none;color:var(--muted);font-size:11px;cursor:pointer" id="ageStatsToggleBtn" data-en="Hide" data-af="Versteek">Hide</button>
+          </div>
+          <!-- Summary cards -->
+          <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:8px;margin-bottom:16px" id="ageStatCards"></div>
+          <!-- Bar chart -->
+          <div style="background:#fff;border-radius:12px;border:1px solid #eee;padding:16px">
+            <div id="ageBarChart" style="display:flex;align-items:flex-end;gap:6px;height:120px;padding:0 4px"></div>
+            <div id="ageBarLabels" style="display:flex;gap:6px;margin-top:6px"></div>
+          </div>
+          <div style="font-size:11px;color:var(--muted);margin-top:8px;text-align:right" id="ageStatsNote"></div>
+        </div>
+
+        <!-- Show stats button for admin -->
+        <div id="ageStatsBtnRow" style="display:none;margin-bottom:12px">
+          <button onclick="toggleAgeStats()" style="background:none;border:1px solid var(--border);color:var(--muted);font-size:12px;padding:5px 12px;border-radius:6px;cursor:pointer">
+            📊 <span data-en="Show Age Stats" data-af="Wys Ouderdomstatistieke">Show Age Stats</span>
+          </button>
+        </div>
+
         <div class="members-toolbar">
           <input class="search-input" type="text" id="memberSearch" data-af-data-af-placeholder="Soek lede..." data-en-placeholder="Search members..." placeholder="Soek lede..." data-en-placeholder="Search members..." placeholder="Soek lede..." oninput="filterMembers(this.value)">
           <select class="filter-select" onchange="filterByRole(this.value)">
@@ -1379,12 +1399,6 @@ window._firebaseSDKLoaded = true;
                 </div>
                 <button class="btn btn-primary" id="btnMemberRegister" style="width:100%;padding:12px;font-size:15px;background:#27AE60;border-color:#27AE60" onclick="doMemberRegister()"
                   data-en="Join Congregation" data-af="Sluit aan by Gemeente">Sluit aan by Gemeente</button>
-
-                <div style="margin-top:16px;padding-top:16px;border-top:1px solid #eee;text-align:center">
-                  <div style="font-size:12px;color:var(--muted);margin-bottom:10px" data-en="Or submit a full membership application form:" data-af="Of dien 'n volledige lidmaatskapvorm in:">Of dien 'n volledige lidmaatskapvorm in:</div>
-                  <button class="btn btn-ghost" style="width:100%;border-color:var(--gold);color:var(--gold)" onclick="openMembershipForm()"
-                    data-en="📋 Submit Membership Application" data-af="📋 Dien Lidmaatskapvorm In">📋 Dien Lidmaatskapvorm In</button>
-                </div>
               </div>
 
             </div>
@@ -2491,76 +2505,6 @@ window._firebaseSDKLoaded = true;
         </div>
       </div>
 
-      <!-- ══════════════════ CHILD CHECK-IN SCREEN ══════════════════ -->
-      <div class="screen" id="screen-checkin">
-        <div class="page-header" style="display:flex;align-items:center;justify-content:space-between;padding:20px 28px 0;flex-wrap:wrap;gap:10px">
-          <div>
-            <div class="page-title" data-en="Child Check-In" data-af="Kinders Inteken">Kinders Inteken</div>
-            <div style="font-size:13px;color:var(--muted)" data-en="Safe & secure child attendance" data-af="Veilige kinderbywoning">Veilige kinderbywoning</div>
-          </div>
-          <button class="btn btn-primary" onclick="openCheckinModal()" data-en="+ Check In Child" data-af="+ Kind Inteken">+ Kind Inteken</button>
-        </div>
-        <div style="padding:20px 28px">
-          <!-- Summary -->
-          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:24px">
-            <div style="background:#fff;border-radius:12px;padding:16px;border:1px solid #eee;text-align:center">
-              <div style="font-size:28px;font-weight:700;color:var(--gold)" id="checkinToday">0</div>
-              <div style="font-size:12px;color:var(--muted)" data-en="Checked In Today" data-af="Vandag Ingeteken">Vandag Ingeteken</div>
-            </div>
-            <div style="background:#fff;border-radius:12px;padding:16px;border:1px solid #eee;text-align:center">
-              <div style="font-size:28px;font-weight:700;color:#27AE60" id="checkinTotal">0</div>
-              <div style="font-size:12px;color:var(--muted)" data-en="Total This Month" data-af="Totaal Hierdie Maand">Totaal Hierdie Maand</div>
-            </div>
-          </div>
-          <!-- Checked in list -->
-          <div style="background:#fff;border-radius:12px;border:1px solid #eee;overflow:hidden">
-            <div style="display:grid;grid-template-columns:2fr 1.5fr 1fr 1fr 80px;gap:8px;padding:12px 20px;background:var(--gold-pale);font-size:11px;font-weight:600;text-transform:uppercase;color:var(--muted)">
-              <span data-en="Child Name" data-af="Kindernaam">Kindernaam</span>
-              <span data-en="Parent / Guardian" data-af="Ouer / Voog">Ouer / Voog</span>
-              <span data-en="Class" data-af="Klas">Klas</span>
-              <span data-en="Time" data-af="Tyd">Tyd</span>
-              <span data-en="Status" data-af="Status">Status</span>
-            </div>
-            <div id="checkinList" style="padding:12px 20px;color:var(--muted);font-size:13px" data-en="No children checked in yet." data-af="Geen kinders ingeteken nie.">Geen kinders ingeteken nie.</div>
-          </div>
-        </div>
-        <!-- Check-In Modal -->
-        <div id="checkinModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:300;align-items:center;justify-content:center">
-          <div style="background:#fff;border-radius:16px;padding:28px;width:90%;max-width:480px">
-            <h3 style="margin-bottom:20px" data-en="Child Check-In" data-af="Kind Inteken">Kind Inteken</h3>
-            <div style="margin-bottom:14px">
-              <label class="form-label" data-en="Child's Full Name" data-af="Kind se Volle Naam">Kind se Volle Naam</label>
-              <input class="form-input" id="ciChildName" placeholder="">
-            </div>
-            <div style="margin-bottom:14px">
-              <label class="form-label" data-en="Age" data-af="Ouderdom">Ouderdom</label>
-              <input class="form-input" type="number" id="ciChildAge" min="0" max="17" placeholder="0">
-            </div>
-            <div style="margin-bottom:14px">
-              <label class="form-label" data-en="Parent / Guardian Name" data-af="Ouer / Voog Naam">Ouer / Voog Naam</label>
-              <input class="form-input" id="ciParentName" placeholder="">
-            </div>
-            <div style="margin-bottom:14px">
-              <label class="form-label" data-en="Parent Cell Number" data-af="Ouer Selfoon">Ouer Selfoon</label>
-              <input class="form-input" type="tel" id="ciParentCell" placeholder="082 000 0000">
-            </div>
-            <div style="margin-bottom:20px">
-              <label class="form-label" data-en="Class / Group" data-af="Klas / Groep">Klas / Groep</label>
-              <select class="form-input" id="ciClass">
-                <option value="babies" data-en="Babies (0-2)" data-af="Babas (0-2)">Babas (0-2)</option>
-                <option value="toddlers" data-en="Toddlers (3-5)" data-af="Kleuters (3-5)">Kleuters (3-5)</option>
-                <option value="junior" data-en="Junior (6-9)" data-af="Junior (6-9)">Junior (6-9)</option>
-                <option value="senior" data-en="Senior (10-13)" data-af="Senior (10-13)">Senior (10-13)</option>
-                <option value="youth" data-en="Youth (14-17)" data-af="Jeug (14-17)">Jeug (14-17)</option>
-              </select>
-            </div>
-            <div style="display:flex;gap:10px;justify-content:flex-end">
-              <button class="btn btn-ghost" onclick="closeCheckinModal()" data-en="Cancel" data-af="Kanselleer">Kanselleer</button>
-              <button class="btn btn-primary" onclick="saveCheckin()" data-en="Check In" data-af="Inteken">Inteken</button>
-            </div>
-          </div>
-        </div>
-      </div>
 
       <!-- ══════════════════ VOLUNTEERS SCREEN ══════════════════ -->
       <div class="screen" id="screen-volunteers">
@@ -3663,8 +3607,8 @@ const ADMIN_PASS = 'mykerk2024';
 
 // ── TRANSLATIONS ──
 const screenTitles = {
-  af: { dashboard:'Paneelbord', members:'Lede', events:'Geleenthede & Dienste', ministries:'Bedieninge', prayer:'Gebedsmuur', groups:'Kleingroepe', sermons:'Preke', kerkraad:'Kerkraad', settings:'Instellings & Admin', attendance:'Bywoning', donations:'Skenkings & Tiendes', checkin:'Kinders Inteken', volunteers:'Vrywilligers' },
-  en: { dashboard:'Dashboard', members:'Members', events:'Events & Services', ministries:'Ministries', prayer:'Prayer Wall', groups:'Small Groups', sermons:'Sermons', kerkraad:'Church Board', settings:'Settings & Admin', attendance:'Attendance', donations:'Donations & Tithes', checkin:'Child Check-In', volunteers:'Volunteers' }
+  af: { dashboard:'Paneelbord', members:'Lede', events:'Geleenthede & Dienste', ministries:'Bedieninge', prayer:'Gebedsmuur', groups:'Kleingroepe', sermons:'Preke', kerkraad:'Kerkraad', settings:'Instellings & Admin', attendance:'Bywoning', donations:'Skenkings & Tiendes', volunteers:'Vrywilligers' },
+  en: { dashboard:'Dashboard', members:'Members', events:'Events & Services', ministries:'Ministries', prayer:'Prayer Wall', groups:'Small Groups', sermons:'Sermons', kerkraad:'Church Board', settings:'Settings & Admin', attendance:'Attendance', donations:'Donations & Tithes', volunteers:'Volunteers' }
 };
 
 const roleLabelsLang = {
@@ -3703,6 +3647,8 @@ function getVisibleMembers(list) {
 
 function renderMembers(list) {
   if (!list) list = members;
+  // Update age stats whenever members are rendered
+  if (typeof renderAgeStats === 'function') setTimeout(renderAgeStats, 100);
   const el = document.getElementById('membersList');
   const labels = roleLabelsLang[currentLang] || roleLabelsLang.af;
   const visible = getVisibleMembers(list);
@@ -5788,261 +5734,119 @@ window._switchSettingsPanel = function(panel, el) {
 
 
   // ═══════════════════════════════════════════════════════════
-  // MEMBERSHIP APPLICATION FORM
+  // AGE DISTRIBUTION STATS
   // ═══════════════════════════════════════════════════════════
-  var mfChildCount = 1;
+  var ageStatsVisible = false;
 
-  function openMembershipForm() {
-    mfChildCount = 1;
-    // Reset all fields
-    document.querySelectorAll('#membershipFormModal input, #membershipFormModal select, #membershipFormModal textarea').forEach(function(el) {
-      if (el.type === 'radio' || el.type === 'checkbox') { el.checked = false; } else { el.value = ''; }
-    });
-    // Reset children container to just child 1
-    var container = document.getElementById('mf_childrenContainer');
-    if (container) {
-      var blocks = container.querySelectorAll('.mf-child-block');
-      for (var i = 1; i < blocks.length; i++) blocks[i].remove();
-    }
-    document.getElementById('membershipFormModal').style.display = 'flex';
-    document.getElementById('membershipFormModal').scrollTop = 0;
+  var AGE_GROUPS = [
+    { label: '0-6',   labelAf: '0-6',   min: 0,  max: 6   },
+    { label: '7-13',  labelAf: '7-13',  min: 7,  max: 13  },
+    { label: '14-18', labelAf: '14-18', min: 14, max: 18  },
+    { label: '19-25', labelAf: '19-25', min: 19, max: 25  },
+    { label: '26-40', labelAf: '26-40', min: 26, max: 40  },
+    { label: '41-65', labelAf: '41-65', min: 41, max: 65  },
+    { label: '66+',   labelAf: '66+',   min: 66, max: 999 }
+  ];
+
+  var AGE_COLORS = ['#F39C12','#27AE60','#2980B9','#8E44AD','#C9A84C','#E74C3C','#16A085'];
+
+  function calcAge(dob) {
+    if (!dob) return null;
+    var today = new Date();
+    var birth = new Date(dob);
+    if (isNaN(birth)) return null;
+    var age = today.getFullYear() - birth.getFullYear();
+    var m = today.getMonth() - birth.getMonth();
+    if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) age--;
+    return age >= 0 ? age : null;
   }
-  window.openMembershipForm = openMembershipForm;
 
-  function closeMembershipForm() {
-    document.getElementById('membershipFormModal').style.display = 'none';
-  }
-  window.closeMembershipForm = closeMembershipForm;
-
-  function addChildBlock() {
-    mfChildCount++;
+  function renderAgeStats() {
     var af = currentLang === 'af';
-    var n = mfChildCount;
-    var container = document.getElementById('mf_childrenContainer');
-    var div = document.createElement('div');
-    div.className = 'mf-child-block';
-    div.style.cssText = 'background:#FAF7F2;border-radius:10px;padding:14px;margin-bottom:12px;position:relative';
-    div.innerHTML =
-      '<div style="font-weight:600;font-size:13px;margin-bottom:10px;color:var(--deep);display:flex;justify-content:space-between">' +
-      '<span>' + (af ? 'Kind ' : 'Child ') + n + '</span>' +
-      '<button onclick="this.parentNode.parentNode.remove()" style="background:none;border:none;color:#e74c3c;cursor:pointer;font-size:16px">✕</button>' +
-      '</div>' +
-      '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">' +
-      '<div><label class="form-label">' + (af?'Van':'Surname') + '</label><input class="form-input" id="mf_c' + n + 'surname" placeholder=""></div>' +
-      '<div><label class="form-label">' + (af?'Volle Name':'Full Names') + '</label><input class="form-input" id="mf_c' + n + 'names" placeholder=""></div>' +
-      '<div><label class="form-label">' + (af?'Noemnaam':'Nickname') + '</label><input class="form-input" id="mf_c' + n + 'nick" placeholder=""></div>' +
-      '<div><label class="form-label">' + (af?'Geboortedatum':'Date of Birth') + '</label><input class="form-input" type="date" id="mf_c' + n + 'dob"></div>' +
-      '<div><label class="form-label">' + (af?'Gemeente: kind gedoop':'Church where Baptised') + '</label><input class="form-input" id="mf_c' + n + 'church" placeholder=""></div>' +
-      '<div><label class="form-label">' + (af?'Datum gedoop':'Date Baptised') + '</label><input class="form-input" type="date" id="mf_c' + n + 'baptism"></div>' +
-      '</div>';
-    container.appendChild(div);
-  }
-  window.addChildBlock = addChildBlock;
 
-  function getVal(id) { var el = document.getElementById(id); return el ? el.value.trim() : ''; }
-  function getChecked(name) {
-    var el = document.querySelector('input[name="' + name + '"]:checked');
-    return el ? el.value : '';
-  }
-  function getDays() {
-    var days = [];
-    document.querySelectorAll('input[name="mf_day"]:checked').forEach(function(el) { days.push(el.value); });
-    return days.join(', ');
-  }
-  function collectChildren() {
-    var children = [];
-    document.querySelectorAll('.mf-child-block').forEach(function(block, i) {
-      var n = i + 1;
-      var surname = block.querySelector('[id$="surname"]');
-      var names = block.querySelector('[id$="names"]');
-      if (surname && names && (surname.value.trim() || names.value.trim())) {
-        var nick = block.querySelector('[id$="nick"]');
-        var dob = block.querySelector('[id$="dob"]');
-        var church = block.querySelector('[id$="church"]');
-        var baptism = block.querySelector('[id$="baptism"]');
-        children.push({
-          childNum: n,
-          surname: surname ? surname.value.trim() : '',
-          fullNames: names ? names.value.trim() : '',
-          nickname: nick ? nick.value.trim() : '',
-          dob: dob ? dob.value : '',
-          churchBaptised: church ? church.value.trim() : '',
-          dateBaptised: baptism ? baptism.value : ''
-        });
+    // Show/hide button row based on admin role
+    var btnRow = document.getElementById('ageStatsBtnRow');
+    var panel = document.getElementById('ageStatsPanel');
+    if (currentUserRole !== 'admin') {
+      if (btnRow) btnRow.style.display = 'none';
+      if (panel) panel.style.display = 'none';
+      return;
+    }
+    if (btnRow) btnRow.style.display = 'block';
+    if (!ageStatsVisible) return;
+
+    // Count members per age group
+    var counts = AGE_GROUPS.map(function() { return 0; });
+    var unknown = 0;
+    var total = 0;
+
+    members.forEach(function(m) {
+      var age = calcAge(m.dob || m.dateOfBirth || m.geboortedatum);
+      if (age === null) { unknown++; return; }
+      total++;
+      for (var i = 0; i < AGE_GROUPS.length; i++) {
+        if (age >= AGE_GROUPS[i].min && age <= AGE_GROUPS[i].max) {
+          counts[i]++;
+          break;
+        }
       }
     });
-    return children;
-  }
 
-  function submitMembershipForm() {
+    var maxCount = Math.max.apply(null, counts) || 1;
+
+    // Summary cards
+    var cards = document.getElementById('ageStatCards');
+    if (cards) {
+      cards.innerHTML = AGE_GROUPS.map(function(g, i) {
+        var pct = total > 0 ? Math.round((counts[i] / total) * 100) : 0;
+        return '<div style="background:#fff;border-radius:10px;border:1px solid #eee;padding:10px;text-align:center">' +
+          '<div style="font-size:20px;font-weight:700;color:' + AGE_COLORS[i] + '">' + counts[i] + '</div>' +
+          '<div style="font-size:10px;font-weight:600;color:var(--muted);margin-top:2px">' + (af ? g.labelAf : g.label) + '</div>' +
+          '<div style="font-size:10px;color:var(--muted)">' + pct + '%</div>' +
+          '</div>';
+      }).join('');
+    }
+
+    // Bar chart
+    var chart = document.getElementById('ageBarChart');
+    var labels = document.getElementById('ageBarLabels');
+    if (chart) {
+      chart.innerHTML = AGE_GROUPS.map(function(g, i) {
+        var heightPct = maxCount > 0 ? Math.max(4, Math.round((counts[i] / maxCount) * 100)) : 4;
+        return '<div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:4px">' +
+          '<div style="font-size:10px;color:var(--muted);font-weight:600">' + counts[i] + '</div>' +
+          '<div style="width:100%;background:' + AGE_COLORS[i] + ';border-radius:4px 4px 0 0;height:' + heightPct + '%;min-height:4px;transition:height 0.3s;opacity:0.85"></div>' +
+          '</div>';
+      }).join('');
+    }
+    if (labels) {
+      labels.innerHTML = AGE_GROUPS.map(function(g, i) {
+        return '<div style="flex:1;text-align:center;font-size:9px;color:var(--muted);font-weight:600">' + (af ? g.labelAf : g.label) + '</div>';
+      }).join('');
+    }
+
+    // Note
+    var note = document.getElementById('ageStatsNote');
+    if (note) {
+      var knownCount = members.length - unknown;
+      note.textContent = (af
+        ? 'Gebaseer op ' + knownCount + ' van ' + members.length + ' lede met bekende geboortedatums'
+        : 'Based on ' + knownCount + ' of ' + members.length + ' members with known dates of birth') +
+        (unknown > 0 ? ' (' + unknown + (af ? ' onbekend' : ' unknown') + ')' : '');
+    }
+  }
+  window.renderAgeStats = renderAgeStats;
+
+  function toggleAgeStats() {
+    ageStatsVisible = !ageStatsVisible;
+    var panel = document.getElementById('ageStatsPanel');
+    var btn = document.getElementById('ageStatsToggleBtn');
     var af = currentLang === 'af';
-    var gemeenteCode = getVal('mf_gemeenteCode').toUpperCase();
-    var primaryName = getVal('mf_fullNamesH');
-    var primarySurname = getVal('mf_surnameH');
-    var primaryEmail = getVal('mf_emailH') || getVal('mf_emailW');
-
-    if (!primaryName || !primarySurname) {
-      showToast(af ? 'Voer ten minste primêre lidmaat se naam in.' : 'Please enter at least the primary member name.');
-      return;
-    }
-    if (!gemeenteCode) {
-      showToast(af ? 'Voer die gemeentekode in.' : 'Please enter the congregation code.');
-      return;
-    }
-
-    var application = {
-      id: Date.now(),
-      submittedAt: new Date().toISOString(),
-      status: 'pending',
-      gemeenteCode: gemeenteCode,
-      // Address
-      streetAddress: getVal('mf_streetAddress'),
-      postalAddress: getVal('mf_postalAddress'),
-      homeTel: getVal('mf_homeTel'),
-      // Husband/Primary
-      husband: {
-        title: getVal('mf_titleH'),
-        surname: primarySurname,
-        fullNames: primaryName,
-        nickname: getVal('mf_nicknameH'),
-        dob: getVal('mf_dobH'),
-        cell: getVal('mf_cellH'),
-        email: getVal('mf_emailH'),
-        maritalStatus: getVal('mf_maritalH'),
-        weddingDate: getVal('mf_weddingDate'),
-        occupation: getVal('mf_occupationH'),
-        employer: getVal('mf_employerH'),
-        workTel: getVal('mf_workTelH')
-      },
-      // Wife/Spouse
-      wife: {
-        title: getVal('mf_titleW'),
-        surname: getVal('mf_surnameW'),
-        fullNames: getVal('mf_fullNamesW'),
-        nickname: getVal('mf_nicknameW'),
-        dob: getVal('mf_dobW'),
-        cell: getVal('mf_cellW'),
-        email: getVal('mf_emailW'),
-        occupation: getVal('mf_occupationW'),
-        employer: getVal('mf_employerW'),
-        workTel: getVal('mf_workTelW')
-      },
-      // Previous congregation
-      prevChurch: getVal('mf_prevChurch'),
-      confessionChurch: getVal('mf_confessionChurch'),
-      confessionDate: getVal('mf_confessionDate'),
-      // Children
-      children: collectChildren(),
-      // Small group
-      preferredDays: getDays(),
-      groupProfile: getVal('mf_groupProfile'),
-      ageGroup: getVal('mf_ageGroup'),
-      kidsCount: getVal('mf_kidsCount'),
-      kidsAges: getVal('mf_kidsAges'),
-      // Communication
-      prayerChain: getChecked('mf_prayerChain'),
-      prayerChainCell: getVal('mf_prayerChainCell'),
-      devotion: getChecked('mf_devotion'),
-      devotionCell: getVal('mf_devotionCell')
-    };
-
-    // Find the gemeente by code and submit
-    if (!db) {
-      showToast(af ? '❌ Firebase nie verbind nie.' : '❌ Firebase not connected.');
-      return;
-    }
-
-    // Search for gemeente with this code
-    db.collection('gemeentes').where('gemeenteCode', '==', gemeenteCode).limit(1).get()
-      .then(function(snap) {
-        if (snap.empty) {
-          showToast(af ? '❌ Gemeentekode nie gevind nie. Kontroleer die kode.' : '❌ Congregation code not found. Please check the code.');
-          return;
-        }
-        var gemeenteDoc = snap.docs[0];
-        var gemeenteId = gemeenteDoc.id;
-        var gemeenteData = gemeenteDoc.data();
-
-        // Save application to the gemeente's aansoeke collection
-        return db.collection('gemeentes').doc(gemeenteId).collection('aansoeke').add(application)
-          .then(function(docRef) {
-            // Also save a notification for the admin
-            return db.collection('gemeentes').doc(gemeenteId).collection('kennisgewings').add({
-              type: 'new_membership_application',
-              applicationId: docRef.id,
-              applicantName: primaryName + ' ' + primarySurname,
-              applicantEmail: primaryEmail,
-              submittedAt: new Date().toISOString(),
-              read: false,
-              message: (af ? 'Nuwe lidmaatskapaansoek ontvang van ' : 'New membership application received from ') + primaryName + ' ' + primarySurname
-            });
-          });
-      })
-      .then(function() {
-        closeMembershipForm();
-        // Show confirmation to member
-        showToast(af
-          ? '✅ Aansoek suksesvol ingedien! Die kerkbestuurder sal u kontak.'
-          : '✅ Application submitted successfully! The church administrator will contact you.');
-        // Show detailed confirmation modal
-        showMembershipConfirmation(primaryName, primaryEmail, af);
-      })
-      .catch(function(err) {
-        showToast(af ? '❌ Fout: ' + err.message : '❌ Error: ' + err.message);
-      });
+    if (panel) panel.style.display = ageStatsVisible ? 'block' : 'none';
+    if (btn) btn.textContent = ageStatsVisible ? (af ? 'Versteek' : 'Hide') : (af ? 'Wys' : 'Show');
+    if (ageStatsVisible) renderAgeStats();
   }
-  window.submitMembershipForm = submitMembershipForm;
-
-  function showMembershipConfirmation(name, email, af) {
-    var msg = af
-      ? '🎉 Welkom, ' + name + '!\n\nJou lidmaatskapaansoek is suksesvol ingedien en is nou in afwagting van bevestiging deur die kerkbestuurder.\n\nJy sal so gou moontlik gekontak word.'
-      : '🎉 Welcome, ' + name + '!\n\nYour membership application has been successfully submitted and is now pending confirmation by the church administrator.\n\nYou will be contacted as soon as possible.';
-
-    // Create a nice confirmation overlay
-    var overlay = document.createElement('div');
-    overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:600;display:flex;align-items:center;justify-content:center;padding:20px';
-    overlay.innerHTML =
-      '<div style="background:#fff;border-radius:16px;padding:32px;max-width:420px;width:100%;text-align:center">' +
-      '<div style="font-size:56px;margin-bottom:16px">🎉</div>' +
-      '<h3 style="color:var(--deep);margin-bottom:8px">' + (af ? 'Aansoek Ontvang!' : 'Application Received!') + '</h3>' +
-      '<p style="color:var(--muted);font-size:14px;line-height:1.6;margin-bottom:20px">' +
-      (af ? 'Welkom, <strong>' + name + '</strong>! Jou lidmaatskapaansoek is suksesvol ingedien. Die kerkbestuurder sal dit verwerk en jou so gou moontlik kontak om die proses te voltooi.'
-          : 'Welcome, <strong>' + name + '</strong>! Your membership application has been successfully submitted. The church administrator will process it and contact you as soon as possible to complete the process.') +
-      '</p>' +
-      '<div style="background:#EAF7EC;border-radius:8px;padding:12px;margin-bottom:20px;font-size:13px;color:#1E8449">' +
-      '✅ ' + (af ? 'Aansoek ingedien en kerkbestuurder is in kennis gestel.' : 'Application submitted and church administrator has been notified.') +
-      '</div>' +
-      '<button onclick="this.parentNode.parentNode.remove()" style="background:var(--gold);color:var(--deep);border:none;border-radius:8px;padding:12px 32px;font-size:15px;font-weight:600;cursor:pointer">' +
-      '</div>';
-    document.body.appendChild(overlay);
-  }
-  window.showMembershipConfirmation = showMembershipConfirmation;
-
-  // Load pending membership applications for admin
-  function loadMembershipApplications() {
-    if (!db || !currentGemeenteId || currentGemeenteId === 'demo' || currentUserRole !== 'admin') return;
-    db.collection('gemeentes').doc(currentGemeenteId).collection('aansoeke')
-      .where('status', '==', 'pending')
-      .orderBy('submittedAt', 'desc')
-      .get()
-      .then(function(snap) {
-        if (!snap.empty) {
-          var count = snap.size;
-          // Show notification badge on settings
-          var badge = document.getElementById('pendingApplicationsBadge');
-          if (!badge) {
-            badge = document.createElement('span');
-            badge.id = 'pendingApplicationsBadge';
-            badge.style.cssText = 'background:#e74c3c;color:#fff;font-size:10px;border-radius:10px;padding:2px 6px;margin-left:6px;font-weight:700';
-            var settingsNav = document.querySelector('[onclick*="settings"]');
-            if (settingsNav) settingsNav.appendChild(badge);
-          }
-          badge.textContent = count;
-          badge.title = count + ' pending membership application(s)';
-        }
-      }).catch(function(){});
-  }
-  window.loadMembershipApplications = loadMembershipApplications;
+  window.toggleAgeStats = toggleAgeStats;
 
   }); // end DOMContentLoaded
 </script>
@@ -6060,296 +5864,5 @@ if (typeof doLogout === 'undefined') {
   }
 }
 </script>
-
-<!-- ══════════════════════════════════════════════════
-     MEMBERSHIP APPLICATION FORM MODAL
-     ══════════════════════════════════════════════════ -->
-<div id="membershipFormModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:500;align-items:flex-start;justify-content:center;overflow-y:auto;padding:20px 0">
-  <div style="background:#fff;border-radius:16px;width:90%;max-width:680px;margin:0 auto;overflow:hidden">
-
-    <!-- Header -->
-    <div style="background:var(--deep);padding:20px 24px;display:flex;align-items:center;justify-content:space-between">
-      <div>
-        <div style="color:var(--gold);font-size:11px;font-weight:600;letter-spacing:2px;text-transform:uppercase;margin-bottom:4px" data-en="New Member Application" data-af="Nuwe Lidmaataansoek">Nuwe Lidmaataansoek</div>
-        <div style="color:#fff;font-size:18px;font-weight:600" data-en="Membership Details Form" data-af="Lidmaatbesonderhede Vorm">Lidmaatbesonderhede Vorm</div>
-      </div>
-      <button onclick="closeMembershipForm()" style="background:rgba(255,255,255,0.1);border:none;color:#fff;width:32px;height:32px;border-radius:50%;font-size:18px;cursor:pointer">✕</button>
-    </div>
-
-    <div style="padding:24px">
-
-      <!-- Info banner -->
-      <div style="background:#FEF9E7;border:1px solid #F9E79F;border-radius:8px;padding:12px 16px;margin-bottom:24px;font-size:13px;color:#7D6608">
-        📋 <span data-en="This form will be sent to the church administrator for processing. You will receive a confirmation once captured." data-af="Hierdie vorm sal aan die kerkbestuurder gestuur word vir verwerking. U sal 'n bevestiging ontvang sodra dit vasgelê is.">This form will be sent to the church administrator for processing. You will receive a confirmation once captured.</span>
-      </div>
-
-      <!-- SECTION: Address Details -->
-      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:2px;color:var(--gold);margin-bottom:12px;padding-bottom:6px;border-bottom:2px solid var(--gold)" data-en="Address Details" data-af="Adresbesonderhede">Adresbesonderhede</div>
-
-      <div style="margin-bottom:12px">
-        <label class="form-label" data-en="Street Address" data-af="Straatadres">Straatadres</label>
-        <input class="form-input" id="mf_streetAddress" placeholder="">
-      </div>
-      <div style="margin-bottom:12px">
-        <label class="form-label" data-en="Postal Address (if different)" data-af="Posadres (indien verskillend)">Posadres (indien verskillend)</label>
-        <input class="form-input" id="mf_postalAddress" placeholder="">
-      </div>
-      <div style="margin-bottom:24px">
-        <label class="form-label" data-en="Home Telephone" data-af="Telefoon (Huis)">Telefoon (Huis)</label>
-        <input class="form-input" type="tel" id="mf_homeTel" placeholder="">
-      </div>
-
-      <!-- SECTION: Personal Details - Husband/Primary -->
-      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:2px;color:var(--gold);margin-bottom:12px;padding-bottom:6px;border-bottom:2px solid var(--gold)" data-en="Personal Details — Husband / Primary Member" data-af="Besonderhede — Man / Primêre Lid">Besonderhede — Man / Primêre Lid</div>
-
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
-        <div>
-          <label class="form-label" data-en="Title" data-af="Titel">Titel</label>
-          <select class="form-input" id="mf_titleH">
-            <option value="">—</option>
-            <option>Mr</option><option>Dr</option><option>Prof</option><option>Rev / Ds</option>
-          </select>
-        </div>
-        <div>
-          <label class="form-label" data-en="Surname (and Maiden Name)" data-af="Van (en Nooiensvan)">Van (en Nooiensvan)</label>
-          <input class="form-input" id="mf_surnameH" placeholder="">
-        </div>
-      </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
-        <div>
-          <label class="form-label" data-en="Full Names" data-af="Volle Name">Volle Name</label>
-          <input class="form-input" id="mf_fullNamesH" placeholder="">
-        </div>
-        <div>
-          <label class="form-label" data-en="Nickname" data-af="Noemnaam">Noemnaam</label>
-          <input class="form-input" id="mf_nicknameH" placeholder="">
-        </div>
-      </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
-        <div>
-          <label class="form-label" data-en="Date of Birth" data-af="Geboortedatum">Geboortedatum</label>
-          <input class="form-input" type="date" id="mf_dobH">
-        </div>
-        <div>
-          <label class="form-label" data-en="Cell Number" data-af="Selfoon">Selfoon</label>
-          <input class="form-input" type="tel" id="mf_cellH" placeholder="082 000 0000">
-        </div>
-      </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
-        <div>
-          <label class="form-label" data-en="Email Address" data-af="E-posadres">E-posadres</label>
-          <input class="form-input" type="email" id="mf_emailH" placeholder="">
-        </div>
-        <div>
-          <label class="form-label" data-en="Marital Status" data-af="Huwelikstatus">Huwelikstatus</label>
-          <select class="form-input" id="mf_maritalH">
-            <option value="">—</option>
-            <option value="married" data-en="Married" data-af="Getroud">Getroud</option>
-            <option value="single" data-en="Single" data-af="Ongetroud">Ongetroud</option>
-            <option value="divorced" data-en="Divorced" data-af="Geskei">Geskei</option>
-            <option value="widowed" data-en="Widowed" data-af="Wewenaar/Weduwee">Wewenaar/Weduwee</option>
-          </select>
-        </div>
-      </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
-        <div>
-          <label class="form-label" data-en="Wedding Date" data-af="Huweliksdatum">Huweliksdatum</label>
-          <input class="form-input" type="date" id="mf_weddingDate">
-        </div>
-        <div>
-          <label class="form-label" data-en="Occupation" data-af="Beroep">Beroep</label>
-          <input class="form-input" id="mf_occupationH" placeholder="">
-        </div>
-      </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:24px">
-        <div>
-          <label class="form-label" data-en="Employer" data-af="Werkgewer">Werkgewer</label>
-          <input class="form-input" id="mf_employerH" placeholder="">
-        </div>
-        <div>
-          <label class="form-label" data-en="Work Telephone" data-af="Werktelefoon">Werktelefoon</label>
-          <input class="form-input" type="tel" id="mf_workTelH" placeholder="">
-        </div>
-      </div>
-
-      <!-- SECTION: Wife / Spouse -->
-      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:2px;color:var(--gold);margin-bottom:12px;padding-bottom:6px;border-bottom:2px solid var(--gold)" data-en="Personal Details — Wife / Spouse (if applicable)" data-af="Besonderhede — Vrou / Eggenoot (indien van toepassing)">Besonderhede — Vrou / Eggenoot</div>
-
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
-        <div>
-          <label class="form-label" data-en="Title" data-af="Titel">Titel</label>
-          <select class="form-input" id="mf_titleW">
-            <option value="">—</option>
-            <option>Mrs / Mev</option><option>Ms / Me</option><option>Dr</option><option>Prof</option>
-          </select>
-        </div>
-        <div>
-          <label class="form-label" data-en="Surname (and Maiden Name)" data-af="Van (en Nooiensvan)">Van (en Nooiensvan)</label>
-          <input class="form-input" id="mf_surnameW" placeholder="">
-        </div>
-      </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
-        <div>
-          <label class="form-label" data-en="Full Names" data-af="Volle Name">Volle Name</label>
-          <input class="form-input" id="mf_fullNamesW" placeholder="">
-        </div>
-        <div>
-          <label class="form-label" data-en="Nickname" data-af="Noemnaam">Noemnaam</label>
-          <input class="form-input" id="mf_nicknameW" placeholder="">
-        </div>
-      </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
-        <div>
-          <label class="form-label" data-en="Date of Birth" data-af="Geboortedatum">Geboortedatum</label>
-          <input class="form-input" type="date" id="mf_dobW">
-        </div>
-        <div>
-          <label class="form-label" data-en="Cell Number" data-af="Selfoon">Selfoon</label>
-          <input class="form-input" type="tel" id="mf_cellW" placeholder="082 000 0000">
-        </div>
-      </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
-        <div>
-          <label class="form-label" data-en="Email Address" data-af="E-posadres">E-posadres</label>
-          <input class="form-input" type="email" id="mf_emailW" placeholder="">
-        </div>
-        <div>
-          <label class="form-label" data-en="Occupation" data-af="Beroep">Beroep</label>
-          <input class="form-input" id="mf_occupationW" placeholder="">
-        </div>
-      </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:24px">
-        <div>
-          <label class="form-label" data-en="Employer" data-af="Werkgewer">Werkgewer</label>
-          <input class="form-input" id="mf_employerW" placeholder="">
-        </div>
-        <div>
-          <label class="form-label" data-en="Work Telephone" data-af="Werktelefoon">Werktelefoon</label>
-          <input class="form-input" type="tel" id="mf_workTelW" placeholder="">
-        </div>
-      </div>
-
-      <!-- SECTION: Previous Congregation -->
-      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:2px;color:var(--gold);margin-bottom:12px;padding-bottom:6px;border-bottom:2px solid var(--gold)" data-en="Previous Congregation" data-af="Vorige Gemeente">Vorige Gemeente</div>
-
-      <div style="margin-bottom:12px">
-        <label class="form-label" data-en="Previous Congregation (Attestate)" data-af="Laaste Gemeente (Attestate)">Laaste Gemeente (Attestate)</label>
-        <input class="form-input" id="mf_prevChurch" placeholder="">
-      </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:24px">
-        <div>
-          <label class="form-label" data-en="Congregation where Confession made" data-af="Gemeente: belydenis afgelê">Gemeente: belydenis afgelê</label>
-          <input class="form-input" id="mf_confessionChurch" placeholder="">
-        </div>
-        <div>
-          <label class="form-label" data-en="Date of Confession" data-af="Datum: belydenis afgelê">Datum: belydenis afgelê</label>
-          <input class="form-input" type="date" id="mf_confessionDate">
-        </div>
-      </div>
-
-      <!-- SECTION: Children (Baptised Members) -->
-      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:2px;color:var(--gold);margin-bottom:12px;padding-bottom:6px;border-bottom:2px solid var(--gold)" data-en="Children (Baptised Members)" data-af="Dooplidmate (Kinders)">Dooplidmate (Kinders)</div>
-
-      <div id="mf_childrenContainer">
-        <!-- Child 1 -->
-        <div class="mf-child-block" style="background:#FAF7F2;border-radius:10px;padding:14px;margin-bottom:12px">
-          <div style="font-weight:600;font-size:13px;margin-bottom:10px;color:var(--deep)" data-en="Child 1" data-af="Kind 1">Kind 1</div>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
-            <div><label class="form-label" data-en="Surname" data-af="Van">Van</label><input class="form-input" id="mf_c1surname" placeholder=""></div>
-            <div><label class="form-label" data-en="Full Names" data-af="Volle Name">Volle Name</label><input class="form-input" id="mf_c1names" placeholder=""></div>
-            <div><label class="form-label" data-en="Nickname" data-af="Noemnaam">Noemnaam</label><input class="form-input" id="mf_c1nick" placeholder=""></div>
-            <div><label class="form-label" data-en="Date of Birth" data-af="Geboortedatum">Geboortedatum</label><input class="form-input" type="date" id="mf_c1dob"></div>
-            <div><label class="form-label" data-en="Church where Baptised" data-af="Gemeente: kind gedoop">Gemeente: kind gedoop</label><input class="form-input" id="mf_c1church" placeholder=""></div>
-            <div><label class="form-label" data-en="Date Baptised" data-af="Datum gedoop">Datum gedoop</label><input class="form-input" type="date" id="mf_c1baptism"></div>
-          </div>
-        </div>
-      </div>
-      <button onclick="addChildBlock()" style="width:100%;border:1px dashed var(--gold);background:none;color:var(--gold);padding:10px;border-radius:8px;cursor:pointer;font-size:13px;margin-bottom:24px" data-en="+ Add Another Child" data-af="+ Voeg Nog 'n Kind By">+ Voeg Nog 'n Kind By</button>
-
-      <!-- SECTION: Small Group -->
-      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:2px;color:var(--gold);margin-bottom:12px;padding-bottom:6px;border-bottom:2px solid var(--gold)" data-en="Small Group Connection" data-af="Kleingroepinskakelng">Kleingroepinskakeling</div>
-
-      <div style="margin-bottom:12px">
-        <label class="form-label" data-en="Preferred meeting day" data-af="Dag van byeenkoms wat u verkies">Dag van byeenkoms wat u verkies</label>
-        <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:6px" id="mf_dayPrefs">
-          <label style="cursor:pointer"><input type="checkbox" name="mf_day" value="Sunday"> <span data-en="Sunday" data-af="Sondag">Sunday</span></label>
-          <label style="cursor:pointer"><input type="checkbox" name="mf_day" value="Monday"> <span data-en="Monday" data-af="Maandag">Monday</span></label>
-          <label style="cursor:pointer"><input type="checkbox" name="mf_day" value="Tuesday"> <span data-en="Tuesday" data-af="Dinsdag">Tuesday</span></label>
-          <label style="cursor:pointer"><input type="checkbox" name="mf_day" value="Wednesday"> <span data-en="Wednesday" data-af="Woensdag">Wednesday</span></label>
-          <label style="cursor:pointer"><input type="checkbox" name="mf_day" value="Thursday"> <span data-en="Thursday" data-af="Donderdag">Thursday</span></label>
-          <label style="cursor:pointer"><input type="checkbox" name="mf_day" value="Friday"> <span data-en="Friday" data-af="Vrydag">Friday</span></label>
-          <label style="cursor:pointer"><input type="checkbox" name="mf_day" value="Saturday"> <span data-en="Saturday" data-af="Saterdag">Saturday</span></label>
-        </div>
-      </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
-        <div>
-          <label class="form-label" data-en="Group Profile" data-af="Groepprofiel">Groepprofiel</label>
-          <select class="form-input" id="mf_groupProfile">
-            <option value="">—</option>
-            <option value="married_no_kids" data-en="Married no children" data-af="Getroud geen kinders">Getroud geen kinders</option>
-            <option value="married_kids" data-en="Married with children" data-af="Getroud met kinders">Getroud met kinders</option>
-            <option value="single" data-en="Single" data-af="Enkellopend">Enkellopend</option>
-            <option value="senior" data-en="Senior Citizens" data-af="Senior Burgers">Senior Burgers</option>
-            <option value="students" data-en="Students" data-af="Studente">Studente</option>
-            <option value="mixed" data-en="Mixed" data-af="Gemeng">Gemeng</option>
-          </select>
-        </div>
-        <div>
-          <label class="form-label" data-en="Age Group" data-af="Ouderdomsgroep">Ouderdomsgroep</label>
-          <select class="form-input" id="mf_ageGroup">
-            <option value="">—</option>
-            <option>18-25</option><option>26-35</option><option>36-45</option>
-            <option>46-55</option><option>56-65</option><option>65-75</option><option>76+</option>
-            <option value="mixed" data-en="Mixed" data-af="Gemeng">Gemeng</option>
-          </select>
-        </div>
-      </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:24px">
-        <div>
-          <label class="form-label" data-en="Number of children attending" data-af="Kinders wat byeenkomste sal bywoon (getal)">Kinders (getal)</label>
-          <input class="form-input" type="number" id="mf_kidsCount" min="0" placeholder="0">
-        </div>
-        <div>
-          <label class="form-label" data-en="Ages of children" data-af="Ouderdomme van kinders">Ouderdomme van kinders</label>
-          <input class="form-input" id="mf_kidsAges" placeholder="e.g. 5, 8, 12">
-        </div>
-      </div>
-
-      <!-- SECTION: Communication -->
-      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:2px;color:var(--gold);margin-bottom:12px;padding-bottom:6px;border-bottom:2px solid var(--gold)" data-en="Communication Preferences" data-af="Kommunikasievoorkeure">Kommunikasievoorkeure</div>
-
-      <div style="margin-bottom:12px">
-        <label class="form-label" data-en="Join Crisis Prayer Chain? (Bulk SMS)" data-af="Wil jy deel wees van die Krisisgebedsketting?">Wil jy deel wees van die Krisisgebedsketting?</label>
-        <div style="display:flex;gap:16px;margin-top:6px">
-          <label><input type="radio" name="mf_prayerChain" value="yes"> <span data-en="Yes" data-af="Ja">Yes</span></label>
-          <label><input type="radio" name="mf_prayerChain" value="no" checked> <span data-en="No" data-af="Nee">No</span></label>
-          <div style="flex:1"><input class="form-input" id="mf_prayerChainCell" placeholder="Cell for bulk SMS" style="padding:6px 10px"></div>
-        </div>
-      </div>
-      <div style="margin-bottom:24px">
-        <label class="form-label" data-en="Receive daily Prayer Devotion (WhatsApp)?" data-af="Wil jy daagliks Gebedpitkos ontvang (Gebedsmanna)?">Wil jy daagliks Gebedsmanna ontvang?</label>
-        <div style="display:flex;gap:16px;margin-top:6px">
-          <label><input type="radio" name="mf_devotion" value="yes"> <span data-en="Yes" data-af="Ja">Yes</span></label>
-          <label><input type="radio" name="mf_devotion" value="no" checked> <span data-en="No" data-af="Nee">No</span></label>
-          <div style="flex:1"><input class="form-input" id="mf_devotionCell" placeholder="Cell for WhatsApp" style="padding:6px 10px"></div>
-        </div>
-      </div>
-
-      <!-- Congregation code -->
-      <div style="background:var(--gold-pale);border-radius:8px;padding:12px 16px;margin-bottom:20px;font-size:13px">
-        <strong data-en="Congregation Code (required to link to church):" data-af="Gemeentekode (benodig om aan kerk te koppel):">Gemeentekode:</strong>
-        <input class="form-input" id="mf_gemeenteCode" placeholder="e.g. KERK-164" style="margin-top:8px;font-weight:700;text-transform:uppercase;letter-spacing:2px">
-        <div style="font-size:11px;color:var(--muted);margin-top:4px" data-en="Ask your church administrator for this code." data-af="Vra jou kerkbestuurder vir hierdie kode.">Vra jou kerkbestuurder vir hierdie kode.</div>
-      </div>
-
-      <!-- Submit -->
-      <div style="display:flex;gap:10px;justify-content:flex-end">
-        <button class="btn btn-ghost" onclick="closeMembershipForm()" data-en="Cancel" data-af="Kanselleer">Kanselleer</button>
-        <button class="btn btn-primary" style="padding:12px 28px" onclick="submitMembershipForm()" data-en="📋 Submit Application" data-af="📋 Dien Aansoek In">📋 Dien Aansoek In</button>
-      </div>
-
-    </div>
-  </div>
-</div>
 </body>
 </html>
